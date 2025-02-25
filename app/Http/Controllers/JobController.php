@@ -6,6 +6,9 @@ use App\Models\Job;
 use App\Models\Application;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
+use OpenAI;
+use Carbon\Carbon;
 
 class JobController extends Controller
 {
@@ -127,7 +130,7 @@ public function storeApplication(Request $request, $job_id)
         // Validation des données
         $validated = $request->validate([
             'poste' => 'required|string',
-            'candidate_name' => 'required|string', // Utilise 'candidate_name' pour le nom du candidat
+            'candidate_name' => 'required|string',
             'date_naissance' => 'required|date',
             'nationalite' => 'required|string',
             'formation' => 'required|string',
@@ -146,37 +149,142 @@ public function storeApplication(Request $request, $job_id)
         $attestationsPath = $request->file('attestations')->store('documents/attestations', 'public');
         $cvPath = $request->file('cv')->store('documents/cv', 'public');
 
-        // Enregistrement dans la base de données
         $application = Application::create([
             'job_id' => $job_id,
             'poste' => $validated['poste'],
-            'candidate_name' => $validated['candidate_name'], // Remplace 'nom' par 'candidate_name'
-            'date_of_birth' => $validated['date_naissance'],  // Remplace 'date_naissance' par 'date_of_birth'
-            'nationality' => $validated['nationalite'], // Remplace 'nationalite' par 'nationality'
-            'education' => $validated['formation'],  // Remplace 'formation' par 'education'
+            'candidate_name' => $validated['candidate_name'],
+            'date_of_birth' => $validated['date_naissance'],
+            'nationality' => $validated['nationalite'],
+            'education' => $validated['formation'],
             'experience' => $validated['experience'],
-            'languages' => $validated['langues'], // Remplace 'langues' par 'languages'
-            'projects' => $validated['projet'], // Remplace 'projet' par 'projects'
+            'languages' => $validated['langues'],
+            'projects' => $validated['projet'],
             'id_card' => $pieceIdentitePath,
             'diplomas' => $diplomesPath,
             'certificates' => $attestationsPath,
             'cv' => $cvPath,
+            'societe' => $request->input('societe', null), // Ajout de la valeur avec NULL par défaut
         ]);
 
-        // Si tout va bien, on valide la transaction
+
         DB::commit();
 
-        // Retour avec un message de succès
         return redirect()->back()->with('success', 'Votre candidature a été soumise avec succès.');
 
     } catch (\Exception $e) {
-        // En cas d'erreur, on annule la transaction
         DB::rollBack();
-
-        // Affiche l'erreur
         dd('Error: ' . $e->getMessage());
+    }
+}
+
+public function showApplicants($id)
+{
+    $totalPersons = Cv::count();
+    $totalJobs = Job::count();
+    $totalImprovedCvs = Cv::whereNotNull('file_path')->count();
+    $jobs = Job::all();
+    $job = Job::findOrFail($id);
+    $applicants = Application::where('job_id', $id)->get();
+
+    return view('admin.applicants', compact('job', 'applicants', 'totalPersons', 'totalJobs', 'totalImprovedCvs'));
+}
+
+public function generateCv($id)
+{
+    $applicant = Application::findOrFail($id);
+
+    // Récupère les données de la candidature
+    $data = [
+        'name' => $applicant->candidate_name,
+        'date_of_birth' => $applicant->date_of_birth,
+        'nationality' => $applicant->nationality,
+        'education' => $applicant->education,
+        'experience' => $applicant->experience,
+        'languages' => $applicant->languages,
+        'projects' => $applicant->projects,
+        'poste' => $applicant->poste,
+        'societe' => $applicant->societe,
+    ];
+
+    // Crée le PDF en utilisant la vue 'admin.cv_template'
+    $pdf = Pdf::loadView('admin.cv_template', $data);
+
+    // Télécharge le CV généré
+    return $pdf->download('CV_Type_' . $applicant->candidate_name . '.pdf');
+}
+
+public function showOptimizeForm()
+    {
+        $cvs = CV::all();
+        $totalPersons = Cv::count();
+        $totalJobs = Job::count();
+        $totalImprovedCvs = Cv::whereNotNull('file_path')->count();
+        return view('admin.optimize_cv', compact('cvs',  'totalPersons', 'totalJobs', 'totalImprovedCvs'));
+    }
+
+    public function optimizeCV(Request $request)
+    {
+        $request->validate([
+            'cv_id' => 'required|exists:cvs,id',
+            'job_offer' => 'required|string',
+        ]);
+
+        $cv = CV::find($request->cv_id);
+        $offer = $request->job_offer;
+
+        // Appel à l'API OpenAI
+        $optimizedCV = $this->generateOptimizedCV($cv->content, $offer);
+
+        // Sauvegarde du CV optimisé
+        $cv->optimized_content = $optimizedCV;
+        $cv->save();
+
+        return view('optimized_cv', compact('cv'));
+    }
+
+    private function generateOptimizedCV($cvContent, $jobOffer)
+    {
+        $openai = OpenAI::client(env('OPENAI_API_KEY'));
+
+        $response = $openai->chat()->create([
+            'model' => 'gpt-4-turbo',
+            'messages' => [
+                ['role' => 'system', 'content' => 'Tu es un expert en optimisation de CV. Reformule le CV en fonction de l\'offre d\'emploi en mettant en avant les compétences pertinentes.'],
+                ['role' => 'user', 'content' => "CV : $cvContent\n\nOffre : $jobOffer"],
+            ],
+        ]);
+
+        return $response['choices'][0]['message']['content'] ?? 'Erreur lors de l\'optimisation.';
+    }
+
+    public function downloadCV($id)
+    {
+        $cv = CV::findOrFail($id);
+        $pdf = PDF::loadView('cv_pdf', compact('cv'));
+        return $pdf->download('Optimized_CV.pdf');
+    }
+
+
+    public function testOpenAI()
+{
+    dd(config('services.openai.api_key'));
+
+    try {
+        $client = \OpenAI::client(env('OPENAI_API_KEY'));
+        $response = $client->chat()->create([
+            'model' => 'gpt-4-turbo',
+            'messages' => [
+                ['role' => 'system', 'content' => 'Dis simplement "Bonjour"'],
+            ],
+        ]);
+
+        return response()->json($response['choices'][0]['message']['content']);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
     }
 }
 
 
 }
+
+

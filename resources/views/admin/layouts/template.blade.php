@@ -7,7 +7,7 @@
         <div class="container-fluid page-body-wrapper">
             @include('admin.layouts.navbar')
             @yield('content')
-            <div class="row">
+           {{--  <div class="row">
               <div class="col-md-4 grid-margin stretch-card">
                 <div class="card bg-facebook d-flex align-items-center">
                   <div class="card-body py-5">
@@ -35,12 +35,12 @@
                   </div>
                 </div>
               </div>
-              
-            </div>
+
+            </div> --}}
             @include('admin.layouts.footer')
         </div>
 
-        
+
     </div>
 
 
@@ -57,7 +57,7 @@
                 $(".file-upload-browse").click(function () {
                   $(this).closest(".form-group").find(".file-upload-default").click();
                 });
-            
+
                 $(".file-upload-default").change(function () {
                   var fileName = $(this).val().split("\\").pop(); // Récupérer le nom du fichier
                   $(this).closest(".form-group").find(".file-upload-info").val(fileName);

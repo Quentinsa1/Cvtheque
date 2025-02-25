@@ -7,43 +7,72 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #f8f9fa;
+            background-image: url('{{ asset('assets/images/jobbac.jpg') }}');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
             font-family: 'Arial', sans-serif;
+            color: #333;
         }
+
         .container {
             max-width: 800px;
             margin-top: 50px;
+            background-color: rgba(255, 255, 255, 0.85); /* Transparent background */
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
         }
+
         .form-label {
             font-weight: bold;
         }
+
         .form-control {
             border-radius: 8px;
             box-shadow: none;
         }
+
         .form-control:focus {
             border-color: #4e73df;
             box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
         }
+
         .btn-primary {
             background-color: #4e73df;
             border-color: #4e73df;
         }
+
         .btn-primary:hover {
             background-color: #2e59d9;
             border-color: #2653d4;
         }
+
         .form-section {
             background-color: #ffffff;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+
+        .mb-3 {
+            margin-bottom: 20px;
+        }
+
+        .text-center button {
+            padding: 10px 30px;
+            font-size: 1.1rem;
+        }
+
+        .form-control:focus {
+            border-color: #4e73df;
+            box-shadow: 0 0 0 0.25rem rgba(78, 115, 223, 0.25);
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2 class="text-center mb-4">Job Application Form</h2>
+        <h2 class="text-center mb-4">Formulaire de Candiadature </h2>
         <form action="{{ route('job.apply', $job->id) }}" method="POST" class="form-section" enctype="multipart/form-data">
             @csrf
             <div class="mb-3">
@@ -102,7 +131,6 @@
                 <button type="submit" class="btn btn-primary">Valider</button>
             </div>
         </form>
-
     </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>

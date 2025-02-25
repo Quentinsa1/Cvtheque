@@ -11,13 +11,16 @@
         body {
             background-color: #f4f6f9;
             font-family: 'Arial', sans-serif;
+            background-image: url('{{ asset('assets/images/jobbac.jpg') }}');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
         }
 
         .job-card {
             max-width: 850px;
             margin: auto;
-/*             padding-left: 10px;
- */         border-radius: 10px;
+            border-radius: 10px;
             overflow: hidden;
             background: #fff;
         }
@@ -29,9 +32,7 @@
             border-radius: 4px;
             display: block;
             margin: 10px;
-            margin: auto;
             padding: 10px;
-            /* Centre l'image horizontalement */
         }
 
         .job-body {
@@ -106,8 +107,7 @@
                 <a href="{{ route('job.apply', $job->id) }}" class="apply-btn mt-3">
                     <i class="fa-solid fa-paper-plane"></i> Postuler
                 </a>
-
-                            </div>
+            </div>
         </div>
     </div>
 

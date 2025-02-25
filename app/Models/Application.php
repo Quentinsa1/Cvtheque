@@ -10,10 +10,16 @@ class Application extends Model
     use HasFactory;
 
     protected $fillable = [
-        'job_id', 'poste', 'societe', 'candidate_name', 'date_naissance',
-        'nationalite', 'formation', 'experience', 'langues', 'projet',
-        'piece_identite', 'diplomes', 'attestations', 'cv'
+        'job_id', 'poste', 'candidate_name', 'date_of_birth', 'nationality',
+        'education', 'experience', 'languages', 'projects', 'id_card',
+        'diplomas', 'certificates', 'cv', 'societe'
     ];
+
+
+    protected $casts = [
+        'date_of_birth' => 'date',
+    ];
+
     public function job()
     {
         return $this->belongsTo(Job::class);

@@ -66,7 +66,7 @@ public function searchCv(Request $request)
             ->orWhere('sous_domaine', 'LIKE', "%{$query}%")
             ->get();
 
-        return view('admin.cvlist', compact('cvs', 'query', 'cvs','totalPersons', 'totalJobs', 'totalImprovedCvs'));
+        return view('admin.cvlist', compact('cvs', 'query', ));
     }
 
 

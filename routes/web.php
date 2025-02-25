@@ -31,6 +31,12 @@ Route::prefix('admin')->group(function () {
     Route::get('/editJob/{id}', [JobController::class, 'editJob'])->name('admin.editJob');
     Route::match(['post', 'put'], '/updateJob/{id}', [JobController::class, 'updateJob'])->name('admin.updateJob');
     Route::delete('/deleteJob/{id}', [JobController::class, 'deleteJob'])->name('admin.deleteJob');
+    Route::get('/admin/job/{id}/applicants', [JobController::class, 'showApplicants'])->name('admin.applicants');
+    Route::get('/admin/generate-cv/{id}', [JobController::class, 'generateCv'])->name('admin.generateCv');
+    Route::get('/optimize-cv', [JobController::class, 'showOptimizeForm'])->name('optimize.form');
+    Route::post('/optimize-cv', [JobController::class, 'optimizeCV'])->name('optimize.process');
+    Route::get('/download-cv/{id}', [JobController::class, 'downloadCV'])->name('cv.download');
+    Route::get('/test-openai', [JobController::class, 'testOpenAI'])->name('test-openai');
 
     // Middleware pour les routes nécessitant une authentification admin
     Route::middleware('auth:admin')->group(function () {
